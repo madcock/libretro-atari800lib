@@ -84,5 +84,9 @@ SOURCES_C += \
 	$(ATARI_800_DIR)/voicebox.c \
 	$(ATARI_800_DIR)/votrax.c \
 	$(ATARI_800_DIR)/votraxsnd.c \
-	$(ATARI_800_DIR)/ide.c \
+	$(ATARI_800_DIR)/ide.c
+
+ifeq (,$(findstring sf2000,$(platform)))
+SOURCES_C += \
 	$(ATARI_800_DIR)/rdevice.c 
+endif
