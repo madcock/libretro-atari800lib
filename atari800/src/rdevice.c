@@ -172,7 +172,7 @@ extern void dc_set_baud(int baud);
 #include <fcntl.h>
 #endif /* not WIN32 and not DREAMCAST */
 
-#if defined(R_SERIAL) && !defined(DREAMCAST)
+#if defined(R_SERIAL) && !defined(DREAMCAST) && !defined(SF2000)
 #include <termios.h>
 #endif /* defined(R_SERIAL) && !defined(DREAMCAST) */
 

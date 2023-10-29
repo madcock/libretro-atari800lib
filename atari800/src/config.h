@@ -77,7 +77,10 @@
 /* #undef GUI_SDL */
 
 /* Define to 1 if `TIOCGWINSZ' requires <sys/ioctl.h>. */
+#if !defined(SF2000)
 #define GWINSZ_IN_SYS_IOCTL 1
+#endif
+
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
@@ -300,7 +303,9 @@
 #define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <termios.h> header file. */
+#if !defined(SF2000)
 #define HAVE_TERMIOS_H 1
+#endif
 
 /* Define to 1 if you have the `time' function. */
 #define HAVE_TIME 1
@@ -468,6 +473,7 @@
 /* Target: Raspberry Pi. */
 /* #undef RPI */
 
+#if !defined(SF2000)
 /* Define to use R: device. */
 #define R_IO_DEVICE 1
 
@@ -476,6 +482,7 @@
 
 /* Define to use the host serial port with the R: device. */
 #define R_SERIAL 1
+#endif
 
 /* Target: SDL library. */
 /* #undef SDL */

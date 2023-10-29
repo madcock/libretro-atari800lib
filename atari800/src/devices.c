@@ -56,7 +56,11 @@
 #endif
 /* XXX: <sys/dir.h>, <ndir.h>, <sys/ndir.h> */
 #ifdef HAVE_DIRENT_H
+#if defined(SF2000)
+#include "../../../../dirent.h"
+#else
 #include <dirent.h>
+#endif
 #endif
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
