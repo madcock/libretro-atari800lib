@@ -27,6 +27,7 @@
 #include <ctype.h>
 #ifdef HAVE_DIRENT_H
 #if defined(SF2000)
+#include <stdint.h>
 #include "../../../../dirent.h"
 #else
 #include <dirent.h>
