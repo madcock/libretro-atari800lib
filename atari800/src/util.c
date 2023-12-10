@@ -595,6 +595,8 @@ void Util_sleep(double s)
 		ts.tv_sec = 0;
 		ts.tv_nsec = s * 1e9;
 		nanosleep(&ts, NULL);
+#elif defined(SF2000)
+		dly_tsk(s * 1e6);
 #elif defined(HAVE_USLEEP)
 		usleep(s * 1e6);
 #elif defined(__BEOS__)

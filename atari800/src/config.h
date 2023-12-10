@@ -179,8 +179,10 @@
 /* Define to 1 if you have the `modf' function. */
 #define HAVE_MODF 1
 
+#if !defined(SF2000)
 /* Define to 1 if you have the `nanosleep' function. */
 #define HAVE_NANOSLEEP 1
+#endif
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 /* #undef HAVE_NDIR_H */
@@ -197,8 +199,10 @@
 /* Support for OpenGL graphics acceleration. */
 /* #undef HAVE_OPENGL */
 
+#if !defined(SF2000)
 /* Define to 1 if you have the `popen' function. */
 #define HAVE_POPEN 1
+#endif
 
 /* Define to 1 if you have the `rename' function. */
 #define HAVE_RENAME 1
