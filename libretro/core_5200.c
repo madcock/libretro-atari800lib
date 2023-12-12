@@ -143,6 +143,7 @@ void handle_joystick(int player) {
     max_analog = right_y;
   if (right_y < min_analog)
     min_analog = right_y;
+#if !defined (SF2000)
   int val = input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
   int dir = 0;
   if (val & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
@@ -162,6 +163,27 @@ void handle_joystick(int player) {
   if (left_x > ANALOG_MIN || right_x > ANALOG_MIN)
     dir |= 8;
   int trig = val & (1 << RETRO_DEVICE_ID_JOYPAD_A) ? 1 : 0;
+#else
+  unsigned i;
+  int val = 0;
+  int dir = 0;
+  for (i = 0; i < 16; i++)
+  {
+    if (input_state_cb(player, RETRO_DEVICE_JOYPAD, 0, i))
+	{
+      val |= (1 << i);
+	  if (i == RETRO_DEVICE_ID_JOYPAD_UP)
+        dir |= 1;
+	  else if (i == RETRO_DEVICE_ID_JOYPAD_DOWN)
+        dir |= 2;
+	  else if (i == RETRO_DEVICE_ID_JOYPAD_LEFT)
+        dir |= 4;
+	  else if (i == RETRO_DEVICE_ID_JOYPAD_RIGHT)
+        dir |= 8;
+	}
+  }
+  int trig = val & (1 << RETRO_DEVICE_ID_JOYPAD_A) ? 1 : 0;
+#endif
   if (player == 0) {
     input.joy0 = dir;
     input.trig0 = trig;
