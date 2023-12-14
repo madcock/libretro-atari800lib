@@ -246,6 +246,13 @@ static void handle_leds() {
   tape_led_state = new_tape_state;
 }
 
+#if defined(SF2000)
+bool set_eject_state(bool ejected);
+unsigned get_image_index();
+bool set_image_index(unsigned index);
+unsigned get_num_images();
+#endif
+
 static int handle_joystick(int player, uint8_t *joy, uint8_t *trig) {
   if (port_device[player] != RETRO_DEVICE_JOYPAD)
     return 0;
@@ -285,62 +292,7 @@ static int handle_joystick(int player, uint8_t *joy, uint8_t *trig) {
   }
   *trig = val & (1 << RETRO_DEVICE_ID_JOYPAD_A) ? 1 : 0;
   *joy = dir;
-#endif
-  return val;
-}
 
-#define MOUSE_PORT 0
-#define POT_MIN 0
-#define POT_MAX 228
-static int handle_paddles(void) {
-  // If INPUT_direct_mouse is disabled and INPUT_mouse_mode is 0, the paddle pot register will be reset to the
-  // disconnected state
-  extern int INPUT_mouse_mode; /* device emulated with mouse, 1 = PADDLES */
-  extern int INPUT_direct_mouse;
-  int use_paddles = port_device[MOUSE_PORT] == RETRO_DEVICE_ATARI_PADDLES;
-  input.mouse_mode = INPUT_mouse_mode = INPUT_direct_mouse = use_paddles;
-  if (use_paddles) {
-    int val = input_state_cb(MOUSE_PORT, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
-    int pot_a =
-        input_state_cb(MOUSE_PORT, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
-    int pot_b =
-        input_state_cb(MOUSE_PORT, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
-    input.mouse_buttons =
-        ((val & (1 << RETRO_DEVICE_ID_JOYPAD_A)) ? 1 : 0) | ((val & (1 << RETRO_DEVICE_ID_JOYPAD_B)) ? 2 : 0);
-    input.mousex = (pot_a + 32 * 1024) * POT_MAX / (64 * 1024);
-    input.mousey = (pot_b + 32 * 1024) * POT_MAX / (64 * 1024);
-    return val;
-  }
-  return 0;
-}
-
-#if defined(SF2000)
-bool set_eject_state(bool ejected);
-unsigned get_image_index();
-bool set_image_index(unsigned index);
-unsigned get_num_images();
-#endif
-
-void core_handle_input(void) {
-  input.mouse_mode = 0;
-  int val = handle_joystick(0, &input.joy0, &input.trig0) | handle_joystick(1, &input.joy1, &input.trig1) |
-            handle_joystick(2, &input.joy2, &input.trig2) | handle_joystick(3, &input.joy3, &input.trig3) |
-            handle_paddles();
-  input.start = (val & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || keyboard_state[RETROK_F5] ? 1 : 0;
-  input.select = (val & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || keyboard_state[RETROK_F6] ? 1 : 0;
-  input.option = (val & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || keyboard_state[RETROK_F7] ? 1 : 0;
-  if (val & (1 << RETRO_DEVICE_ID_JOYPAD_X))
-    input.keycode = AKEY_SPACE;
-  if (val & (1 << RETRO_DEVICE_ID_JOYPAD_R))
-    input.keycode = AKEY_RETURN;
-  input.shift = keyboard_state[RETROK_LSHIFT] || keyboard_state[RETROK_RSHIFT] ? 1 : 0;
-  input.control = keyboard_state[RETROK_LCTRL] || keyboard_state[RETROK_RCTRL] ? 1 : 0;
-  input.special = keyboard_state[RETROK_F10] ? -AKEY_BREAK : 0;
-  input.special = keyboard_state[RETROK_F9] ? -AKEY_WARMSTART : 0;
-  handle_osk(val);
-  handle_leds();
-
-#if defined(SF2000)
   if (val & (1 << RETRO_DEVICE_ID_JOYPAD_L))
   {
     unsigned mediatotal = 0;
@@ -380,6 +332,52 @@ void core_handle_input(void) {
     }
   }
 #endif
+  return val;
+}
+
+#define MOUSE_PORT 0
+#define POT_MIN 0
+#define POT_MAX 228
+static int handle_paddles(void) {
+  // If INPUT_direct_mouse is disabled and INPUT_mouse_mode is 0, the paddle pot register will be reset to the
+  // disconnected state
+  extern int INPUT_mouse_mode; /* device emulated with mouse, 1 = PADDLES */
+  extern int INPUT_direct_mouse;
+  int use_paddles = port_device[MOUSE_PORT] == RETRO_DEVICE_ATARI_PADDLES;
+  input.mouse_mode = INPUT_mouse_mode = INPUT_direct_mouse = use_paddles;
+  if (use_paddles) {
+    int val = input_state_cb(MOUSE_PORT, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+    int pot_a =
+        input_state_cb(MOUSE_PORT, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+    int pot_b =
+        input_state_cb(MOUSE_PORT, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_X);
+    input.mouse_buttons =
+        ((val & (1 << RETRO_DEVICE_ID_JOYPAD_A)) ? 1 : 0) | ((val & (1 << RETRO_DEVICE_ID_JOYPAD_B)) ? 2 : 0);
+    input.mousex = (pot_a + 32 * 1024) * POT_MAX / (64 * 1024);
+    input.mousey = (pot_b + 32 * 1024) * POT_MAX / (64 * 1024);
+    return val;
+  }
+  return 0;
+}
+
+void core_handle_input(void) {
+  input.mouse_mode = 0;
+  int val = handle_joystick(0, &input.joy0, &input.trig0) | handle_joystick(1, &input.joy1, &input.trig1) |
+            handle_joystick(2, &input.joy2, &input.trig2) | handle_joystick(3, &input.joy3, &input.trig3) |
+            handle_paddles();
+  input.start = (val & (1 << RETRO_DEVICE_ID_JOYPAD_START)) || keyboard_state[RETROK_F5] ? 1 : 0;
+  input.select = (val & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT)) || keyboard_state[RETROK_F6] ? 1 : 0;
+  input.option = (val & (1 << RETRO_DEVICE_ID_JOYPAD_Y)) || keyboard_state[RETROK_F7] ? 1 : 0;
+  if (val & (1 << RETRO_DEVICE_ID_JOYPAD_X))
+    input.keycode = AKEY_SPACE;
+  if (val & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+    input.keycode = AKEY_RETURN;
+  input.shift = keyboard_state[RETROK_LSHIFT] || keyboard_state[RETROK_RSHIFT] ? 1 : 0;
+  input.control = keyboard_state[RETROK_LCTRL] || keyboard_state[RETROK_RCTRL] ? 1 : 0;
+  input.special = keyboard_state[RETROK_F10] ? -AKEY_BREAK : 0;
+  input.special = keyboard_state[RETROK_F9] ? -AKEY_WARMSTART : 0;
+  handle_osk(val);
+  handle_leds();
 }
 
 static int includes_word(const char *s, const char *word) {
