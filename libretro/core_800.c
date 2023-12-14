@@ -314,6 +314,13 @@ static int handle_paddles(void) {
   return 0;
 }
 
+#if defined(SF2000)
+bool set_eject_state(bool ejected);
+unsigned get_image_index();
+bool set_image_index(unsigned index);
+unsigned get_num_images();
+#endif
+
 void core_handle_input(void) {
   input.mouse_mode = 0;
   int val = handle_joystick(0, &input.joy0, &input.trig0) | handle_joystick(1, &input.joy1, &input.trig1) |
@@ -332,6 +339,47 @@ void core_handle_input(void) {
   input.special = keyboard_state[RETROK_F9] ? -AKEY_WARMSTART : 0;
   handle_osk(val);
   handle_leds();
+
+#if defined(SF2000)
+  if (val & (1 << RETRO_DEVICE_ID_JOYPAD_L))
+  {
+    unsigned mediatotal = 0;
+    mediatotal = get_num_images() - 1;
+    if (mediatotal > 1)
+    {
+      unsigned mediaindex = 0;
+      mediaindex = get_image_index();
+      if (set_eject_state(true))
+      {
+        mediaindex--;
+        mediaindex = (mediaindex < 0) ? 0 : mediaindex;
+        if (set_image_index(mediaindex))
+        {
+          set_eject_state(false);
+        }
+      }
+    }
+  }
+  else if (val & (1 << RETRO_DEVICE_ID_JOYPAD_R))
+  {
+    unsigned mediatotal = 0;
+    mediatotal = get_num_images() - 1;
+    if (mediatotal > 1)
+    {
+      unsigned mediaindex = 0;
+      mediaindex = get_image_index();
+      if (set_eject_state(true))
+        {
+          mediaindex++;
+          mediaindex = (mediaindex == mediatotal) ? 0 : mediaindex;
+          if (set_image_index(mediaindex))
+          {
+            set_eject_state(false);
+          }
+        }
+    }
+  }
+#endif
 }
 
 static int includes_word(const char *s, const char *word) {
@@ -423,13 +471,25 @@ static struct {
   char path[FILENAME_MAX];
 } disk_info[MAX_DISKS];
 
+#if !defined(SF2000)
 static bool set_eject_state(bool ejected) {
+#else
+bool set_eject_state(bool ejected) {
+#endif
   is_ejected = ejected;
   return true;
 }
 static bool get_eject_state() { return is_ejected; }
+#if !defined(SF2000)
 static unsigned get_image_index() { return disk_index; }
+#else
+unsigned get_image_index() { return disk_index; }
+#endif
+#if !defined(SF2000)
 static bool set_image_index(unsigned index) {
+#else
+bool set_image_index(unsigned index) {
+#endif
   if (index >= max_disk_index)
     return false;
   if (index == disk_index)
@@ -441,7 +501,11 @@ static bool set_image_index(unsigned index) {
   set_message(message_text);
   return true;
 }
+#if !defined(SF2000)
 static unsigned get_num_images() { return max_disk_index; }
+#else
+unsigned get_num_images() { return max_disk_index; }
+#endif
 static bool get_image_label(unsigned index, char *label, size_t len) {
   strncpy(label, disk_info[index].label, len);
   return true;
